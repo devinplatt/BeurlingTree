@@ -1,29 +1,35 @@
 //============================================================================
-// Name        : beurling_tree.cpp
+// Name        : main.cpp
 // Author      : Devin Platt
 // Version     :
-// Copyright   : Your copyright notice
-// Description : Hello World in C++, Ansi-style
+// Copyright   : MIT License
+// Description : A demonstration of the program's functionality.
 //============================================================================
 
 #include <iostream>
 #include <limits>
 #include "test_tree.h"
+#include "test_factorization.h"
 using namespace std;
 using namespace Platt;
 
-void VerifyTest (bool pass, string test);
+void VerifyTest (bool pass, string test, string* error);
 
 int main() {
-	VerifyTest(TestTree(), "Tree test");
+  string error;
+
+  VerifyTest(TestFactorization(&error), "Factorization test", &error);
+	VerifyTest(TestTree(&error), "Tree test", &error);
 
 	cin.ignore(numeric_limits<streamsize>::max(),'\n');
 	return 0;
 }
 
-void VerifyTest (bool pass, string test) {
-  if(pass)
+void VerifyTest (bool pass, string test, string* error) {
+  if(pass) {
     cout << test << " passes." << endl;
-  else
+  } else {
     cout << test << " fails!" << endl;
+    cout << "Error: " << *error << endl;
+  }
 }

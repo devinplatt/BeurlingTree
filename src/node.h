@@ -21,8 +21,6 @@ using std::vector;
 
 namespace Platt {
 
-template <class T> class FunctorBase;
-
 template <class T>
 class Node{
  private:

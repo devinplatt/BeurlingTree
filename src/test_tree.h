@@ -12,15 +12,13 @@
 
 #include <iostream>
 #include <string>
-#include <sstream>
-#include "Tree.h"
+#include "tree.h"
+#include "compatibility.h"
 using std::string;
-// Because to_string is broken with MinGW
-using std::stringstream;
 
 namespace Platt {
 
-bool TestTree(){
+bool TestTree(string* error){
   Tree<int> T;
   T.Init(1);
   string output;
@@ -35,18 +33,16 @@ bool TestTree(){
   };
 
   auto ReadItems = [&] (Node<int>* N) {
-    // This should be a one-liner, but to_string broken with MinGW
-    //*out += to_string(N->GetData());
-    stringstream ss;
-    ss << N->GetData();
-    output += ss.str();
+    output += Platt::to_string(N->GetData());
   };
 
   T.DepthFirst(T.NO_ACTION(), T.NO_ACTION(), &InsertItems);
   T.DepthFirst(T.NO_ACTION(), T.NO_ACTION(), &InsertItems);
   T.BreadthFirst(&ReadItems, T.NO_ACTION());
 
-  return output == "1234567";
+  string expected = "1234567";
+  *error = "output of tree is \"" + output + "\" when it should be " + expected;
+  return output == expected;
 }
 
 }  // namespace Platt

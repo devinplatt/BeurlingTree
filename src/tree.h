@@ -17,7 +17,7 @@
 #define TREE_H_
 
 #include <queue>
-#include "Node.h"
+#include "node.h"
 using std::queue;
 
 namespace Platt {
