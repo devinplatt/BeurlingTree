@@ -94,6 +94,27 @@ bool TestFactorization(string* error) {
                   "Required count for " + f211.ToDotString());
   EXPECT_EQ(f221.RequiredCount(), (unsigned int)8, &pass, error,
                   "Required count for " + f221.ToDotString());
+
+  EXPECT_TRUE((f221 == f221), &pass, error,
+              "<2,2,1> should be equal to <2,2,1>.");
+  EXPECT_FALSE((f221 != f221), &pass, error,
+               "<2,2,1> should not be not equal to <2,2,1>.");
+  EXPECT_FALSE((f211 == f221), &pass, error,
+              "<2,1,1> should not be equal to <2,2,1>.");
+  EXPECT_TRUE((f211 != f221), &pass, error,
+              "<2,1,1> should be not equal to <2,1,1>.");
+
+  EXPECT_TRUE((Tuple(1,2) < Tuple(1,3)), &pass, error,
+                "(1,2) should be lexicographically less than (1,3).");
+  EXPECT_TRUE((Tuple(1,3) < Tuple(2,1)), &pass, error,
+                  "(1,3) should be lexicographically less than (2,1).");
+  EXPECT_FALSE((Tuple(2,1) < Tuple(2,1)), &pass, error,
+                    "(2,1) should not be lexicographically less than (2,1).");
+  EXPECT_FALSE((Tuple(1,3) < Tuple(1,2)), &pass, error,
+                  "(1,3) should not be lexicographically less than (1,2).");
+  EXPECT_FALSE((Tuple(2,1) < Tuple(1,3)), &pass, error,
+                  "(2,1) should not be lexicographically less than (1,3).");
+
   return pass;
 }
 

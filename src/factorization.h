@@ -37,10 +37,13 @@ namespace Platt {
 // Note that "std::tuple" is a type!
 // A Tuple is a (prime, exponent) pair.
 typedef pair<unsigned int, unsigned int> Tuple;
+bool LexicographicallyLess(const Tuple& lhs, const Tuple& rhs);
 
 class Factorization {
  private:
   // The tuples are ordered by lower primes to higher primes.
+  // This fact is depended on by the implementations of operator+, operator==
+  // and LexicographicallyLess.
   vector<Tuple> factors;
 
   // Because C++ isn't Python
@@ -70,6 +73,8 @@ class Factorization {
   // used for std associative containers. I couldn't get a std::less template
   // overload to work, so I'm overloading the < operator instead.
   bool operator< (const Factorization& rhs) const;
+  bool operator== (const Factorization& rhs) const;
+  bool operator!= (const Factorization& rhs) const;
 };
 
 }  // namespace Platt

@@ -10,6 +10,7 @@
 #include <limits>
 #include "test_tree.h"
 #include "test_factorization.h"
+#include "test_multiplication_table.h"
 using namespace std;
 using namespace Platt;
 
@@ -20,6 +21,7 @@ int main() {
 
   VerifyTest(TestFactorization(&error), "Factorization test", &error);
 	VerifyTest(TestTree(&error), "Tree test", &error);
+	VerifyTest(TestMultiplicationTable(&error), "MultiplicationTable test", &error);
 
 	cin.ignore(numeric_limits<streamsize>::max(),'\n');
 	return 0;

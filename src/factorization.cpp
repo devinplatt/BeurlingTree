@@ -14,6 +14,14 @@ using std::min;
 
 namespace Platt {
 
+bool LexicographicallyLess(const Tuple& lhs, const Tuple& rhs) {
+  if (lhs.first < rhs.first)
+    return true;
+  else if (lhs.first == rhs.first && lhs.second < rhs.second)
+    return true;
+  return false;
+}
+
 // Constructors should set local_type_is_vector.
 Factorization::Factorization() {
   factors.push_back(Tuple(0,0));
@@ -65,6 +73,7 @@ const Factorization& Factorization::operator=(const Factorization& f) {
   return f;
 }
 
+// Implementation depends on the sorting of factors.
 Factorization Factorization::operator+(const Factorization& f) const{
   vector<Tuple> sum;
   size_t i = 0;
@@ -233,6 +242,7 @@ unsigned int Factorization::RequiredCount() const {
 // comes first in the ordering, including the zero power.
 // 3. If the two factorizations are the same except that one has more Tuples
 //    the factorization with less Tuples comes first.
+// This implementation depends on the sorting of factors.
 bool Factorization::LexicographicallyLess(const Factorization& lhs,
                                           const Factorization& rhs) {
   vector<Tuple> lfactors = lhs.factors;
@@ -265,6 +275,22 @@ bool Factorization::LexicographicallyLess(const Factorization& lhs,
 
 bool Factorization::operator< (const Factorization& rhs) const {
   return LexicographicallyLess(*this, rhs);
+}
+
+// Depends on sorting of factors
+bool Factorization::operator== (const Factorization& rhs) const {
+  if (factors.size() != rhs.factors.size())
+    return false;
+  for (size_t i = 0; i < factors.size(); ++i) {
+    if (factors[i].first != rhs.factors[i].first
+        || factors[i].second != rhs.factors[i].second)
+      return false;
+  }
+  return true;
+}
+
+bool Factorization::operator!= (const Factorization& rhs) const {
+  return !(*this == rhs);
 }
 
 }  // namespace Platt
