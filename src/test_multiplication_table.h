@@ -4,7 +4,10 @@
  *  Created on: Nov 7, 2013
  *      Author: Devin
  *
- *  A test for the MultiplicationTable class.
+ *  A test for the MultiplicationTable class. We add values to the table as if
+ *  following the path of the natural numbers down the tree, checking to see
+ *  that the MultiplicationTable class gives us the correct response for the
+ *  GetCandidates() function.
  */
 
 #ifndef TEST_MULTIPLICATION_TABLE_H_

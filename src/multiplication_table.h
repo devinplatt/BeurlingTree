@@ -2,7 +2,10 @@
  * multiplication_table.h
  *
  *  Created on: Nov 7, 2013
- *      Author: devin
+ *      Author: Devin
+ *
+ *  Declares the MultiplicationTable class. This class is used by the tree
+ *  to determine what the children of a node will be.
  */
 
 #ifndef MULTIPLICATION_TABLE_H_
@@ -121,12 +124,16 @@ class MultiplicationTable {
   // where x,y are accessor indices and i,j are table indices. In this program
   // we will always use accessor indices.
 
+  // Returns the "frontier", the list of cells in the table where we might
+  // possibly place the next number in our sequence of integers.
   vector<Tuple> GetFrontier() const;
 
  public:
 
   // Sets prime_count to 0. Initializes table.
   MultiplicationTable();
+  // Returns the child composites of a node with the associated state of the
+  // MultiplicationTable.
   vector<Candidate> GetCandidates() const;
   unsigned int GetPrimeCount() const;
   void PushComposite(const Candidate&);

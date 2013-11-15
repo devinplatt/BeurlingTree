@@ -35,12 +35,6 @@ class Candidate {
   }
   Candidate(const Candidate& c) {entries = c.entries; factors = c.factors;}
   void SetFactors(const Factorization& f) {factors = f;}
-  // TODO: Decide on which of the following three to actually use. Discard the
-  // others.
-  void SetEntries(const vector<Tuple>& in) {entries = in;}
-  void AddEntry(unsigned int i, unsigned int j) {
-    entries.push_back(Tuple(i,j));
-  }
   void AddEntry(Tuple t) {
     entries.push_back(t);
   }
@@ -48,6 +42,9 @@ class Candidate {
   Factorization GetFactors() const {return factors;}
   vector<Tuple> GetEntries() const {return entries;}
 
+  /* TODO: Figure out const issues here. This issue propagates upwards since
+   * calling functions can't use const.
+   */
   bool operator== (/*const*/ Candidate& rhs) /*const*/ {
     if (factors != rhs.factors)
       return false;
