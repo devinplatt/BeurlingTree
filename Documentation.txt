@@ -1,0 +1,350 @@
+Documentation: A Program for Building the Tree of Beurling Generalized Integers
+
+Table of Contents
+
+- Introduction
+- Use
+	- Exporting as a Dot File
+- Implementation
+	- General Structure
+	- Algorithm
+	- Serialization (Format)
+
+-----
+Introduction
+-----
+
+What we provide: C++ source code with four classes:
+	IntegerTree
+	PrimePowerTree
+	IntegerTreePath		(NOT IMPLEMENTED YET)
+	PrimePowerTreePath	(NOT IMPLEMENTED YET)
+which can be used to study the Beurling generalized integers.
+
+The IntegerTree class builds and maintains a tree storing prime factorizations of integers
+as its nodes. The tree gives all orderings possible in a g-integer system, up to the finite
+height to which it is built. There is an underlying assumption of the uniqueness of prime
+factorizations.
+
+The PrimePowerTree class builds and maintains a tree storing just prime powers. It has been
+shown that orderings of prime powers are isomorphic to the g-integers (see the paper "Beurling
+Zeta Functions, Generalised Primes, and Fractal Membranes" by Lapidus and Hilberdink.) In an
+infinite sense they are isomorphic then to orderings of prime factorizations (of all integers),
+although to any finite number there is not a bijective correspondence between orderings of prime
+powers and orderings of factorizations.
+
+The Path-suffixed classes do not build the whole trees, but generate all of the children for a node
+and descend on just one child. The policy for what path to take is genericized. For instance, these
+classes could be used to do "random walks" down the trees, or a multiplication function could be
+used to determine the path. (NOTE: the Path-suffixed classes are currently unimplemented.)
+
+The trees are built upon construction to a specified height. After construction, a NextLevel()
+function can be called to build the tree further. Building the tree to the desired height at onset
+should be faster than building it iteratively using NextLevel(), although we have yet to test how
+significant the performance differs. (NOTE: NextLevel() is currently unimplemented.)
+
+All the trees can be saved to a proprietary plain text serialization format. The trees can also be
+exported as .dot files for visualization, although visualization is difficult unless the size of
+the tree is quite small. (One can use a utility such as GraphViz to visualize .dot files.)
+
+The full tree classes provide a function which outputs the frequencies for values of the prime
+counting function at any height up to the tree's current height. This makes more sense for the
+IntegerTree class than the PrimePower Tree class as it generalizes the prime counting function, 
+but we want to try building the triangle for the PrimePower case as well.
+
+-----
+Use (SECTION INCOMPLETE)
+-----
+
+See the main.cpp program for example usage. Sorry for the sparse details!
+
+-----
+Implementation (SECTION INCOMPLETE)
+-----
+
+--
+General Structure:
+--
+
+The Tree class is templated to a Node class, which is templated to a type T.
+
+The Tree class provides access to the root Node, as well as DFS and BFS generic algorithms
+which take Functors of parameter Node<T>* as parameters.
+
+The three functor parameters to the generic algorithms are:
+
+(Recursive 1)	R1: Actions Pre-traversal of children
+(Recursive 2)	R2: Actions Post-traversal of (all) children
+(Leaf)		L:  Actions if Node has no children
+
+In some case the program eschews the use of the generic traversal algorithms and uses direct access
+of the root. We do this for initial tree-building, for example.
+
+In other cases we use a generic traversal algorithm. For example, serialization, PCF counting,
+and NextLevel use DFS.
+
+BFS is currently not used for anything, but we leave it for potential future use.
+
+--
+Algorithm
+--
+
+This is an explanation of the algorithm for deciding what factorizations are possible for the next
+number in the sequence (if that number is composite).
+
+The data structures:
+
+1. A multiplication table, which one can consider as a  2-dimensional dynamically allocated (growing
+size) nxn matrix. We only store values in the upper-right half of the table (including the diagonal)
+since multiplication is symmetric; we consider cells (i,j) to be invalid if i < j. In the actual
+implementation we store each row as a separate vector, and take into account an offset value that maps
+a row's items to the appropriate columns in this nxn table.
+
+Since our program is in C++, we will use 0-based indexing for consistency. As previously mentioned the
+indexing in the actual implementation differs from what is discussed here.
+
+As we have a multiplication table, each cell (i,j) can be considered as the "product" of the numbers
+in cells (0,i) and (0,j).
+
+The first row of the table corresponds to multiplication by the identity element, so any number that
+is in a cell in the table must necessarily appear in the first row.
+
+2. Cells in the table contains two members:
+	a "position" indicating the index of the number in the first row
+	the unique prime factorization of the number in the Beurling generalized integer system
+
+Example:
+
+The following is an example using the natural numbers as our integer system. We use the exponent
+vector form of factorization (with arrays of length two for formatting convenience only). Please
+note that this is just a "cut-away" view of the table, not an actual state during the flow of the
+algorithm, since there are values filled in which aren't yet occurring in the top row.
+
+       0       1       2       3        ...
+  --------------------------------------
+0 |0, [0,0]|1, [1,0]|2, [0,1]|3, [2,0]|
+  --------------------------------------
+1 |        |3, [2,0]|5, [1,1]|7, [3,0]|
+  --------------------------------------
+2 |        |        |8, [0,2]|11,[2,1]| 
+  --------------------------------------
+3 |        |        |        |15,[4,0]|
+  --------------------------------------
+
+
+
+3. A dynamically allocated (growing) list of rightmost indices, rIndices. The value rIndices[i]
+indicates the rightmost value j for which the cell (i,i+j) is valid. The size of rIndices thus is
+never greater than n. (As before, this differs from the actual implementation; rIndices does not
+exist as a structure in the program because the size of a row acts as a substitute. Using a title
+for these values makes the discussion of the algorithm easier.)
+
+Note that the rIndices are offset! The value j = rIndices[i] is NOT the value of the column for the
+rightmost cell in the row i.
+
+	In the following table, cells have their respective
+	rIndices filled in.
+
+       0       1       2       3
+  --------------------------------------
+0 |    0   |    1   |    2   |    3   |
+  --------------------------------------
+1 |        |    0   |    1   |    2   |
+  --------------------------------------
+2 |        |        |    0   |    1   |
+  --------------------------------------
+3 |        |        |        |    0   |
+  --------------------------------------
+
+
+
+4. We refer to the current sequence of factorizations as cur_seq. This is equivalent to the
+factorizations in the first row of the table. The length of cur_seq is equal to rIndices[0]
+(there is a zero offset in rIndices for the first row.)
+
+5. We store the a count of number of primes in the table. This is used for adding more primes to the table
+
+Now that we've laid out the data structures, we are ready to discuss the algorithm!
+
+Algorithm for determining the children of a given node:
+
+1. 
+
+Determine the "frontier" cells of the multiplication table. The frontier is
+the set of cells that touch the boundary of the existing cells in the table and
+follow a certain rule:
+	- There must exist a cell in the same column in the row above it.
+This rule enforces the rule of multiplication that larger numbers lead to greater
+products, ie. translation-invariance.
+
+	vector< pair<unsigned int, unsigned int> > frontier = get_frontier();
+
+The frontier is a starting list of candidate cells which can be filled in to
+the table in this particular invocation of the algorithm. Note that the cell to
+the right of the rightmost cell in the first row is not included in the frontier;
+it is always added to the table since the first row represents multiplication by
+the identity.
+
+2.
+
+We have a multimap of candidates, where the key is a factorization and the value
+is a row, column pair (i,j) indicating a cell where this factorization would be present.
+
+We also have the set of keys (factorizations).
+
+In this step we take the frontier cells and add them to the multimap of candidates. This
+collapses the set of cells so that all cells with the same factorization are collected
+together.
+
+for each cell in frontier
+	add cell to candidates multimap
+	(add cell's key to the set of keys, which does not store duplicates)
+
+3.
+
+We now must remove candidates that do not have "enough" cells given their factorization.
+For example, the factorization (2,1) should have two cells associated with it:
+	the cell corresponding to (2,0) * (0,1)
+	the cell corresponding to (1,0) * (1,1)
+If we have just one cell in the frontier for this factorization we are not allowed to add
+this factorization to the table yet. Implicitly the missing cell means that there is some
+other factorization f' which is considered "less" than this factorization f, and f' is not
+yet in the table. Essentially, by counting cells and making sure that they meet this requirement
+we are checking the recursive rule of our partial ordering. The table acts as a memoization
+technique for "remembering" the recursive rules of this partial ordering.
+
+let keys_to_erase be the list of keys of candidates to remove from the multimap of candidates
+
+for each factorization f in keys
+	let required_count = RequiredCount(f)
+	let current_count = count of elements in candidates with key f
+
+	if current_count < required_count
+		add f to keys_to_erase
+
+for each factorization f in keys_to_erase
+	remove elements of candidates with key f
+	(remove key f from keys)
+
+
+4.
+
+Return candidates. (We're done!)
+
+
+Algorithm for RequiredCount(factorization f):
+
+	Returns the number of "binary products" necessary. We disregard products
+	that have the identity as one of the arguments.
+
+	Examples of output:
+
+			Factorization as	Output of		Natual Number
+			Exponent Vector		Required Count		Example
+			{1,1,0}		=>	1			(6: 3*2)
+			{1,2,0}		=>	2			(18: 2*9,3*6)
+			{2,1,0}		=>	2			(12: 2*6,3*4) (symmetric to previous)
+			{3,1,0}		=>	3			(24: 2*12,3*8,4*6)
+			{2,2,0}		=>	4			(36: 2*18,3*12,4*8,6*6)
+			{3,2,0}		=>	5			(72: 2*36,3*24,4*18,6*12,8*9)
+			{4,1,0}		=>	4			(48: 2*24,3*16,4*12,6*8)
+
+			{1,1,1}		=>	3			(30: 2*15,3*10,5*6)
+			{2,1,1}		=>	5			(60: 2*30,3*20,4*15,5*12,6*10)
+			{2,2,1}		=>	8			(180: 2*90,3*60,4*45,5*36,6*30,9*20,10*18,12*15)
+			{3,1,1}		=>	7			(120: 2*60,3*40,4*30,5*24,6*20,8*15,10*12)
+
+			{1,0,0}		=>	0			(2: none)
+			{2,0,0}		=>	1			(4: 2*2)
+			{3,0,0}		=>	1			(8: 2*4)
+			{4,0,0}		=>	2			(16: 2*8,4*4)
+			{5,0,0}		=>	2			(32: 2*16,4*8)
+			{6,0,0}		=>	3			(64: 2*32,4*16,8*8)
+
+	Given a factorization f, each prime has a frequency,
+	ie.
+		Given
+				natural number	| exponent vector	| tuples
+			1.	12		  <2,1>			  {(1,2),(2,1)}
+			2.	24		  <3,1>			  {(1,3),(2,1)}
+			3.	30		  <1,1,1>		  {(1,1),(2,1),(3,1)}
+		
+		For the first example:
+			The first prime has a frequency of 2
+			The second prime has a frequency of 1
+
+		For the second example:
+			The first prime has a frequency of 3
+			The second prime has a frequency of 1
+
+		For the third example:
+			The first, second, and third primes all have a frequency of 1
+
+	We use these frequencies to determine the required number of binary products -- combinations
+	of two numbers that yield the given factorization.
+
+	The Algorithm:
+
+	let count = 1
+	for each prime frequency pf:
+		count = count * (pf+1)
+
+	// At this point count equals the number of all the "subsets" of factorization f.
+	// For example, for the factorization <2,2> (in exponent vector form)
+	// count = 9, since the "subsets" of <2,2> are (in lexicographical order):
+	// <0,0>, <0,1>, <0,2>, <1,0>, <1,1>, <1,2>, <2,0>, <2,1>, <2,2>
+
+	// Note that we can pair each "subset" with another to get the factorization f.
+	// In some cases (like with f = <2,2>) there will be one subset we pair with itself
+	// (e.g <1,1> and <1,1> makes <2,2>). To get the required count we effectively
+	// wish to count these pairs.
+
+	// We also wish to disregard the pair containing the identity (eg. <0,0>).
+
+	// Thus if count is even at this point we want the value (count-2)/2,
+	// and if count is odd we want the value (count-1)/2.
+
+	count = count - 1
+	count = count / 2, rounded down
+
+	return count
+
+
+
+
+
+Algorithm for determining "frontier" cells of the multiplication table:
+
+	for(each row r in rIndices besides the first row r=0)
+
+		let c = rIndices[r]+r, ie. it is the column index in the table with the offset added
+		let cAbove = rIndices[r-1]+r-1, the column index for the row above
+
+		if (c < cAbove)
+			add (r,c+1) to the frontier
+
+	// Determine if a new row can be added to rIndices, that is, if the first
+	// cell of the next row (this is on the diagonal) is in the frontier.
+	let r = max index of rIndices
+	let cAbove = rIndices[r]+r
+	if( r+1 <= cAbove )
+		add (r+1,r+1) to the frontier
+
+	return the frontier
+
+Our determining of the frontier implies an important property of the table.
+
+Property of the table: rIndex[i]+i >= rIndex[i+1]+(i+1)
+This inequality is not strict.
+
+--
+Serialization (SUBSECTION INCOMPLETE)
+--
+
+Serialization is of plaintext form:
+#,#|#,#[
+#,#[
+]
+#,#|#,#|#,#[
+]
+]
