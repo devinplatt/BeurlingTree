@@ -13,36 +13,33 @@
 #include "test_factorization.h"
 #include "test_multiplication_table.h"
 #include "integer_tree.h"
+#include "prime_power_tree.h"
 using namespace std;
 using namespace Platt;
 
-const unsigned int HEIGHT = 4;
+const unsigned int HEIGHT = 10;
 
 void VerifyTest (bool pass, string test, string* error);
 void RunTests();
 void BuildTree(IntegerTree** tree, unsigned int height);
-void ExportAsDot(IntegerTree* tree, string filename);
-void SerializeTree(IntegerTree* tree, string filename);
+void BuildTree(PrimePowerTree** tree, unsigned int height);
+void ExportAsDot(BeurlingTreeBase* tree, string filename);
+void SerializeTree(BeurlingTreeBase* tree, string filename);
 void OpenTree(IntegerTree** serial_copy, string filename);
-void PrintTriangle(IntegerTree* tree);
-void ExportTriangle(IntegerTree* tree, string filename);
+void OpenTree(PrimePowerTree** serial_copy, string filename);
+void PrintTriangle(BeurlingTreeBase* tree);
+void ExportTriangle(BeurlingTreeBase* tree, string filename);
+void DemoIntegerTree();
+void DemoPrimePowerTree();
 
 int main() {
   RunTests();
-  IntegerTree* tree = nullptr;
-  IntegerTree* serial_copy = nullptr;
-
+  //DemoIntegerTree();
+  //DemoPrimePowerTree();
+  PrimePowerTree* tree = nullptr;
   BuildTree(&tree, HEIGHT);
-  ExportAsDot(tree, "tree.dot");
-  PrintTriangle(tree);
-  ExportTriangle(tree, "triangle.txt");
-  SerializeTree(tree, "serial.txt");
-  OpenTree(&serial_copy, "serial.txt");
-  ExportAsDot(serial_copy, "serial.dot");
-  PrintTriangle(serial_copy);
-
+  ExportTriangle(tree, "primepower_triangle.txt");
   if (tree) delete tree;
-  if (serial_copy) delete serial_copy;
 
   cin.ignore(numeric_limits<streamsize>::max(),'\n');
 	return 0;
@@ -73,7 +70,16 @@ void BuildTree(IntegerTree** tree, unsigned int height) {
   cout << "Built Tree in " << seconds << " seconds" << endl;
 }
 
-void ExportAsDot(IntegerTree* tree, string filename) {
+void BuildTree(PrimePowerTree** tree, unsigned int height) {
+  time_t begin = time(NULL);
+  cout << "Building Tree to height " << height << endl;
+  *tree = new PrimePowerTree(height);
+  time_t end = time(NULL);
+  double seconds = difftime(end, begin);
+  cout << "Built Tree in " << seconds << " seconds" << endl;
+}
+
+void ExportAsDot(BeurlingTreeBase* tree, string filename) {
   time_t begin = time(NULL);
   cout << "Exporting " << filename << endl;
   tree->ExportAsDot(filename);
@@ -82,7 +88,7 @@ void ExportAsDot(IntegerTree* tree, string filename) {
   cout << "Exported to " << filename << " in " << seconds << " seconds" << endl;
 }
 
-void SerializeTree(IntegerTree* tree, string filename){
+void SerializeTree(BeurlingTreeBase* tree, string filename){
   time_t begin = time(NULL);
   cout << "Serializing..." << endl;
   tree->SerializeToFile(filename);
@@ -100,7 +106,16 @@ void OpenTree(IntegerTree** serial_copy, string filename) {
   cout << "Opened " << filename << " in " << seconds << " seconds" << endl;
 }
 
-void PrintTriangle(IntegerTree* tree) {
+void OpenTree(PrimePowerTree** serial_copy, string filename) {
+  time_t begin = time(NULL);
+  cout << "Opening..." << endl;
+  *serial_copy = new PrimePowerTree(filename);
+  time_t end = time(NULL);
+  double seconds = difftime(end, begin);
+  cout << "Opened " << filename << " in " << seconds << " seconds" << endl;
+}
+
+void PrintTriangle(BeurlingTreeBase* tree) {
   cout << "Printing triangle" << endl;
   vector< vector<unsigned int> > triangle = tree->GetTriangle();
   for (size_t i = 0; i < triangle.size(); ++i) {
@@ -112,7 +127,7 @@ void PrintTriangle(IntegerTree* tree) {
   cout << endl;
 }
 
-void ExportTriangle(IntegerTree* tree, string filename) {
+void ExportTriangle(BeurlingTreeBase* tree, string filename) {
   cout << "Exporting triangle" << endl;
   ofstream out(filename);
   vector< vector<unsigned int> > triangle = tree->GetTriangle();
@@ -123,4 +138,38 @@ void ExportTriangle(IntegerTree* tree, string filename) {
     out << endl;
   }
   out.close();
+}
+
+void DemoIntegerTree() {
+  IntegerTree* tree = nullptr;
+  IntegerTree* serial_copy = nullptr;
+
+  BuildTree(&tree, HEIGHT);
+  ExportAsDot(tree, "tree.dot");
+  PrintTriangle(tree);
+  ExportTriangle(tree, "triangle.txt");
+  SerializeTree(tree, "serial.txt");
+  OpenTree(&serial_copy, "serial.txt");
+  ExportAsDot(serial_copy, "serial.dot");
+  PrintTriangle(serial_copy);
+
+  if (tree) delete tree;
+  if (serial_copy) delete serial_copy;
+}
+
+void DemoPrimePowerTree() {
+  PrimePowerTree* tree = nullptr;
+  PrimePowerTree* serial_copy = nullptr;
+
+  BuildTree(&tree, HEIGHT);
+  ExportAsDot(tree, "primepower.dot");
+  PrintTriangle(tree);
+  ExportTriangle(tree, "primepower_triangle.txt");
+  SerializeTree(tree, "primepower_serial.txt");
+  OpenTree(&serial_copy, "primepower_serial.txt");
+  ExportAsDot(serial_copy, "primepower_serial.dot");
+  PrintTriangle(serial_copy);
+
+  if (tree) delete tree;
+  if (serial_copy) delete serial_copy;
 }

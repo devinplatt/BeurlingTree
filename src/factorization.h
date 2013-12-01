@@ -61,6 +61,7 @@ class Factorization {
   string ToDotString() const;
   string ToSerialString() const;
   bool IsPrime() const;
+  bool IsPrimePower() const;
   bool IsIdentity() const;
   unsigned int RequiredCount() const;
   // Used by the std::less function templated for Factorization, so that

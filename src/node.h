@@ -18,6 +18,8 @@
 
 #include<vector>
 using std::vector;
+#include <map>
+using std::map;
 
 namespace Platt {
 
@@ -25,22 +27,29 @@ template <class T>
 class Node{
  private:
   T data;
-  vector< Node<T>* > nodes;
+  map< T, Node<T>* > nodes;
 
  public:
   Node() {}
   Node(T Data){data=Data;}
   void SetData(T Data) {data = Data;}
-  void Add(Node* N) {nodes.push_back(N);}
+  void Add(Node* N) {nodes.insert(std::pair<T,Node<T>*>(N->data,N));}
   T GetData() const {return data;}
   T* GetDataPtr() {return &data;}
-  vector< Node<T>* > GetChildren() {return nodes;}
-  bool Childless(){ return nodes.size()==0; }
+  vector< Node<T>* > GetChildren() {
+    vector< Node<T>* > children_vector;
+    for(auto it = nodes.begin(); it != nodes.end(); ++it)
+      children_vector.push_back(it->second);
+    return children_vector;
+  }
+  Node<T>* GetChild (const T& in) {return nodes[in];}
+  bool Childless(){return nodes.size()==0;}
+  bool HasChild (const T& in) {return nodes.count(in) == 1;}
 
   template <class functor>
   void Iterate(functor& f) {
     for (auto &child : nodes) {
-      f(child);
+      f(child.second);  // child.second is the child node
     }
   }
 };

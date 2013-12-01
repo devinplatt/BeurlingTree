@@ -135,6 +135,10 @@ bool Factorization::IsPrime() const {
   return (factors.size() == 1 && factors[0].second == 1);
 }
 
+bool Factorization::IsPrimePower() const {
+  return (factors.size() == 1);
+}
+
 bool Factorization::IsIdentity() const {
   return (factors.size() == 1 && factors[0].first == 0
           && factors[0].second == 0);
