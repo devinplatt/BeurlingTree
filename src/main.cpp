@@ -14,15 +14,21 @@
 #include "test_multiplication_table.h"
 #include "integer_tree.h"
 #include "prime_power_tree.h"
+#include "restricted_tree.h"
+#include "diagonal_formula.h"
 using namespace std;
 using namespace Platt;
 
 const unsigned int HEIGHT = 10;
+// The following two constants are used for RestrictedTree.
+const int MAX_PRIMES = 3;
+const int MAX_COMPOSITES = 3;
 
 void VerifyTest (bool pass, string test, string* error);
 void RunTests();
 void BuildTree(IntegerTree** tree, unsigned int height);
 void BuildTree(PrimePowerTree** tree, unsigned int height);
+void BuildTree(RestrictedTree** tree, unsigned int height);
 void ExportAsDot(BeurlingTreeBase* tree, string filename);
 void SerializeTree(BeurlingTreeBase* tree, string filename);
 void OpenTree(IntegerTree** serial_copy, string filename);
@@ -31,15 +37,15 @@ void PrintTriangle(BeurlingTreeBase* tree);
 void ExportTriangle(BeurlingTreeBase* tree, string filename);
 void DemoIntegerTree();
 void DemoPrimePowerTree();
+void DemoRestrictedTree();
+void DemoDiagonalFormula();
 
 int main() {
   RunTests();
-  //DemoIntegerTree();
+  DemoIntegerTree();
   //DemoPrimePowerTree();
-  PrimePowerTree* tree = nullptr;
-  BuildTree(&tree, HEIGHT);
-  ExportTriangle(tree, "primepower_triangle.txt");
-  if (tree) delete tree;
+  //DemoRestrictedTree();
+  //DemoDiagonalFormula();
 
   cin.ignore(numeric_limits<streamsize>::max(),'\n');
 	return 0;
@@ -63,7 +69,7 @@ void RunTests() {
 
 void BuildTree(IntegerTree** tree, unsigned int height) {
   time_t begin = time(NULL);
-  cout << "Building Tree to height " << height << endl;
+  cout << "Building Integer Tree to height " << height << endl;
   *tree = new IntegerTree(height);
   time_t end = time(NULL);
   double seconds = difftime(end, begin);
@@ -72,8 +78,17 @@ void BuildTree(IntegerTree** tree, unsigned int height) {
 
 void BuildTree(PrimePowerTree** tree, unsigned int height) {
   time_t begin = time(NULL);
-  cout << "Building Tree to height " << height << endl;
+  cout << "Building PrimePower Tree to height " << height << endl;
   *tree = new PrimePowerTree(height);
+  time_t end = time(NULL);
+  double seconds = difftime(end, begin);
+  cout << "Built Tree in " << seconds << " seconds" << endl;
+}
+
+void BuildTree(RestrictedTree** tree, unsigned int height) {
+  time_t begin = time(NULL);
+  cout << "Building Restricted Tree to height " << height << endl;
+  *tree = new RestrictedTree(MAX_PRIMES, MAX_COMPOSITES, height);
   time_t end = time(NULL);
   double seconds = difftime(end, begin);
   cout << "Built Tree in " << seconds << " seconds" << endl;
@@ -110,6 +125,15 @@ void OpenTree(PrimePowerTree** serial_copy, string filename) {
   time_t begin = time(NULL);
   cout << "Opening..." << endl;
   *serial_copy = new PrimePowerTree(filename);
+  time_t end = time(NULL);
+  double seconds = difftime(end, begin);
+  cout << "Opened " << filename << " in " << seconds << " seconds" << endl;
+}
+
+void OpenTree(RestrictedTree** serial_copy, string filename) {
+  time_t begin = time(NULL);
+  cout << "Opening..." << endl;
+  *serial_copy = new RestrictedTree(filename);
   time_t end = time(NULL);
   double seconds = difftime(end, begin);
   cout << "Opened " << filename << " in " << seconds << " seconds" << endl;
@@ -172,4 +196,33 @@ void DemoPrimePowerTree() {
 
   if (tree) delete tree;
   if (serial_copy) delete serial_copy;
+}
+
+void DemoRestrictedTree() {
+  RestrictedTree* tree = nullptr;
+  RestrictedTree* serial_copy = nullptr;
+
+  BuildTree(&tree, HEIGHT);
+  ExportAsDot(tree, "restricted.dot");
+  //SerializeTree(tree, "restricted_serial.txt");
+  //OpenTree(&serial_copy, "restricted_serial.txt");
+  //ExportAsDot(serial_copy, "restricted_serial.dot");
+
+  if (tree) delete tree;
+  if (serial_copy) delete serial_copy;
+}
+
+void DemoDiagonalFormula() {
+  DiagonalFormula f(5);
+  cout << f.GetFormulaString() << endl;
+  for(size_t x = 2; x < 5; ++x) {
+    DiagonalFormula df(x);
+    vector <Tuple> coefficients = df.GetFormula();
+    cout << coefficients.size() << " ";
+    for (size_t y = 0; y < coefficients.size(); ++y) {
+      cout << "(" << to_string(coefficients[y].first) << ", "
+           << to_string(coefficients[y].second) << "), ";
+    }
+    cout << endl;
+  }
 }
