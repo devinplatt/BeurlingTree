@@ -110,7 +110,7 @@ string Factorization::ToDotString() const {
   string out;
   out += "{";
   for(size_t i = 0; i < factors.size(); ++i) {
-    out += "(" + to_string(factors[i].first)
+    out += "(" + to_string(factors[i].first + 1) // Change to 1-based indexing
            + "," + to_string(factors[i].second)
            + ")";
     if(i+1 < factors.size())

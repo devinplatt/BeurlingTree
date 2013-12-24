@@ -19,7 +19,7 @@
 using namespace std;
 using namespace Platt;
 
-const unsigned int HEIGHT = 10;
+const unsigned int HEIGHT = 4;
 // The following two constants are used for RestrictedTree.
 const int MAX_PRIMES = 3;
 const int MAX_COMPOSITES = 3;

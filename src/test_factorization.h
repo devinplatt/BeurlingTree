@@ -22,11 +22,11 @@ bool TestFactorization(string* error) {
   bool pass = true;
   *error = "";
 
-  Factorization f0;             // {(0,0)}
-  Factorization f1(0);          // {(0,1)}
-  Factorization f01(1);         // {(1,1)}
-  Factorization f11 = f1+f01;   // {(0,1),(1,1)}
-  Factorization fcopy(f11);     // {(0,1),(1,1)}
+  Factorization f0;             // {(1,0)}
+  Factorization f1(0);          // {(1,1)}
+  Factorization f01(1);         // {(2,1)}
+  Factorization f11 = f1+f01;   // {(1,1),(2,1)}
+  Factorization fcopy(f11);     // {(1,1),(2,1)}
   Factorization fSerial(f11.ToSerialString());
   Factorization f2 = f1+f1;
   Factorization f3 = f2+f1;
@@ -36,19 +36,20 @@ bool TestFactorization(string* error) {
   Factorization f211 = f2+f01+f001;
   Factorization f221 = f211 + f01;
 
-  // Test construction, ToDotString()
-  EXPECT_EQ(f0.ToDotString(), (string)"{(0,0)}", &pass, error, "Default");
-  EXPECT_EQ(f1.ToDotString(), (string)"{(0,1)}", &pass, error, "First Prime");
-  EXPECT_EQ(f01.ToDotString(), (string)"{(1,1)}", &pass, error, "Second Prime");
-  EXPECT_EQ(f11.ToDotString(), (string)"{(0,1),(1,1)}", &pass, error,
+  // Test construction, ToDotString() (the Dot string uses 1-based indexing for
+  // primes, while internally the program uses 0-based indexing)
+  EXPECT_EQ(f0.ToDotString(), (string)"{(1,0)}", &pass, error, "Default");
+  EXPECT_EQ(f1.ToDotString(), (string)"{(1,1)}", &pass, error, "First Prime");
+  EXPECT_EQ(f01.ToDotString(), (string)"{(2,1)}", &pass, error, "Second Prime");
+  EXPECT_EQ(f11.ToDotString(), (string)"{(1,1),(2,1)}", &pass, error,
            "First prime plus second");
-  EXPECT_EQ(fcopy.ToDotString(), (string)"{(0,1),(1,1)}", &pass, error,
+  EXPECT_EQ(fcopy.ToDotString(), (string)"{(1,1),(2,1)}", &pass, error,
            "Copy of First prime plus second");
 
   // Test ToSerialString, construction from serial string
   EXPECT_EQ(f11.ToSerialString(), (string)"0,1|1,1", &pass, error,
             "Serialization of first prime plus second");
-  EXPECT_EQ(fSerial.ToDotString(), (string)"{(0,1),(1,1)}", &pass, error,
+  EXPECT_EQ(fSerial.ToDotString(), (string)"{(1,1),(2,1)}", &pass, error,
               "Serialization of construction by serialization of first prime plus second");
 
   // Test IsPrime()

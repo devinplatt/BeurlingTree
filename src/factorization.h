@@ -58,6 +58,9 @@ class Factorization {
   Factorization(const Factorization&);
   const Factorization& operator=(const Factorization&);
   Factorization operator+(const Factorization&) const;
+  // This program internally uses 0-based indexing and 1-based indexing for
+  // primes and exponents, respectively. The Dot string is output with 1-based
+  // indexing for both values.
   string ToDotString() const;
   string ToSerialString() const;
   bool IsPrime() const;
