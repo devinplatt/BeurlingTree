@@ -2,6 +2,8 @@ BeurlingTree
 ============
 
 Code for generating a tree for the partial order of factorizations of Beurling generalized integers.
+For more information on the topic, see my blog posts:
+  http://www.devinplatt.com/blog/beurling-integers-part-one/
 The implementation is in C++. In the future I might write versions in other languages, but for now
 this is all you get.
 
