@@ -49,10 +49,10 @@ vector<Tuple> Factorization::SplitAndConvert(const string &s) {
     string item;
 
     getline(ss2, item, ',');
-    unsigned int first = stoul(item);
+    unsigned int first = Platt::stoul(item);
 
     getline(ss2, item, ',');  // goes to end of item
-    unsigned int second = stoul(item);
+    unsigned int second = Platt::stoul(item);
 
     second_split.push_back(Tuple(first,second));
   }
@@ -231,13 +231,25 @@ unsigned int Factorization::RequiredCount() const {
   //   return count
 
   unsigned int count = 1;
-  for(Tuple t : factors) {
-    count *= t.second+1;
+  for (Tuple t : factors) {
+    count *= t.second + 1;
   }
 
   count--;
   count /= 2;
   return count;
+}
+
+int Factorization::NumPrimeFactors() {
+  int count = 0;
+  for (Tuple t : factors) {
+    count += t.second;
+  }
+  return count;
+}
+
+int Factorization::NumDistinctPrimeFactors() {
+  return factors.size();
 }
 
 // Our lexicographical ordering is defined so that:

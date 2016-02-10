@@ -67,6 +67,8 @@ class Factorization {
   bool IsPrimePower() const;
   bool IsIdentity() const;
   unsigned int RequiredCount() const;
+  int NumPrimeFactors();
+  int NumDistinctPrimeFactors();
   // Used by the std::less function templated for Factorization, so that
   // Factorization can be used in std associative containters. See the .cpp
   // file for more details.
