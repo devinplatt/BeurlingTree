@@ -9,6 +9,7 @@
 #include <time.h>
 #include <iostream>
 #include <limits>
+#include <string>
 #include "test_tree.h"
 #include "test_factorization.h"
 #include "test_multiplication_table.h"
@@ -16,10 +17,12 @@
 #include "prime_power_tree.h"
 #include "restricted_tree.h"
 #include "diagonal_formula.h"
+#include "random_walk.h"
 using namespace std;
 using namespace Platt;
 
-const unsigned int HEIGHT = 4;
+const unsigned int RUNS = 10;
+const unsigned int HEIGHT = 1000;
 // The following two constants are used for RestrictedTree.
 const int MAX_PRIMES = 3;
 const int MAX_COMPOSITES = 3;
@@ -39,16 +42,19 @@ void DemoIntegerTree();
 void DemoPrimePowerTree();
 void DemoRestrictedTree();
 void DemoDiagonalFormula();
+void RunRandomWalks(/*int runs, int height*/);
 
 int main() {
-  RunTests();
-  DemoIntegerTree();
+  //RunTests();
+  //DemoIntegerTree();
+
   //DemoPrimePowerTree();
   //DemoRestrictedTree();
   //DemoDiagonalFormula();
+  RunRandomWalks();
 
   cin.ignore(numeric_limits<streamsize>::max(),'\n');
-	return 0;
+  return 0;
 }
 
 void VerifyTest (bool pass, string test, string* error) {
@@ -225,4 +231,55 @@ void DemoDiagonalFormula() {
     }
     cout << endl;
   }
+}
+
+void RunRandomWalk(RandomWalk** tree, unsigned int height) {
+    //time_t begin = time(NULL);
+    //cout << "Building path of length " << height << endl;
+    *tree = new RandomWalk(height);
+    //time_t end = time(NULL);
+    //double seconds = difftime(end, begin);
+    //cout << "Built path in " << seconds << " seconds" << endl;
+}
+
+void exportCSV(int matrix[RUNS][HEIGHT+1], string filename) {
+    std::ofstream out(filename);
+    
+    for (int i = 0; i < RUNS; i++) {
+        for (int j = 0; j < HEIGHT+1; j++)
+            out << std::to_string(matrix[i][j]) << ',';
+        out << '\n';
+    }
+}
+
+void RunRandomWalks(/*int runs, int height*/) {
+    RandomWalk* path = nullptr;
+    int number_primes[RUNS][HEIGHT+1];
+    int number_prime_factors[RUNS][HEIGHT+1];
+    int number_distinct_prime_factors[RUNS][HEIGHT+1];
+    int number_children[RUNS][HEIGHT+1];
+    
+    for (int i = 0; i < RUNS; i++) {
+        //RunRandomWalk(&path, j);
+        if (path != nullptr)
+            delete path;
+        path = new RandomWalk(HEIGHT);
+        for (int j = 0; j < HEIGHT+1; j++) {
+            number_primes[i][j] = path->NumPrimes(j);
+            number_prime_factors[i][j] = path->NumPrimeFactors(j);
+            number_distinct_prime_factors[i][j] = path->NumDistinctPrimeFactors(j);
+            number_children[i][j] = path->NumChildren(j);
+        }
+    }
+    
+    cout << "number primes: " << number_primes[RUNS-1][HEIGHT] << endl;
+    cout << "number prime factors: " << number_prime_factors[RUNS-1][HEIGHT] << endl;
+    cout << "number distinct prime factors: " <<
+    number_distinct_prime_factors[RUNS-1][HEIGHT] << endl;
+    cout << "number children: " << number_children[RUNS-1][HEIGHT] << endl;
+    
+    exportCSV(number_primes, "number_primes.csv");
+    exportCSV(number_prime_factors, "number_prime_factors.csv");
+    exportCSV(number_distinct_prime_factors, "number_distinct_prime_factors.csv");
+    exportCSV(number_children, "number_children.csv");
 }
