@@ -14,7 +14,7 @@ sudo apt-get install coinor-libclp-dev
 
 Using g++ in Ubuntu, one can link to the CLP libraries using the command
 ```bash
-g++ *.cpp -std=c++11 -I/usr/include/coin/ -lglpk -lClp -lCoinUtils -lbz2 -lz -llapack -lblas -lm -o output
+g++ *.cpp -std=c++11 -I/usr/include/coin/ -lClp -lCoinUtils -lbz2 -lz -llapack -lblas -lm -o output
 ```
 
 This is a work in progress. Additional documentation is provided in the separate Documentation.txt file.
