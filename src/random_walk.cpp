@@ -101,4 +101,9 @@ int RandomWalk::NumChildren(int n) {
   return number_children[n];
 }
 
+Factorization RandomWalk::GetFactorization(int n) const {
+  return path[n];
+}
+
 }  // namespace Platt
+

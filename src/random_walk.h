@@ -40,8 +40,10 @@ class RandomWalk : public BeurlingTreeBase {
   int NumPrimeFactors(int n);
   int NumDistinctPrimeFactors(int n);
   int NumChildren(int n);
+  Factorization GetFactorization(int n) const;
 };
 
 }  // namespace Platt
 
 #endif /* RANDOM_WALK_H_ */
+
