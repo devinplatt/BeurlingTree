@@ -17,25 +17,59 @@ using std::vector;
 
 namespace Platt {
 
-  // Since our program is in C++, we used 0-based indexing.
+// Since our program is in C++, we used 0-based indexing.
 
-  // As we have a multiplication table, each cell is a number. Each cell (i,j)
-  // can be considered as the "product" of the numbers in cells (0,i) and (0,j).
+// As we have a multiplication table, each cell is a number. Each cell (i,j)
+// can be considered as the "product" of the numbers in cells (0,i) and (0,j).
 
-  // The first row of the table corresponds to multiplication by the identity
-  // element, so any number that is in a cell in the table must necessarily
-  // appear in the first row.
+// The first row of the table corresponds to multiplication by the identity
+// element, so any number that is in a cell in the table must necessarily
+// appear in the first row.
 
-  // Cells in the table contains two members:
-  // - A "position" indicating the index of the number in the first row.
-  // - The unique prime factorization of the number in the Beurling generalized
-  // integer system.
-  struct Cell {
-    unsigned int position;
-    Factorization factors;
-    Cell(): position(), factors() {}
-    Cell(unsigned int p, Factorization f): position(p), factors(f) {}
-  };
+// Cells in the table contains two members:
+// - A "position" indicating the index of the number in the first row.
+// - The unique prime factorization of the number in the Beurling generalized
+// integer system.
+struct Cell {
+  unsigned int position;
+  Factorization factors;
+  Cell(): position(), factors() {}
+  Cell(unsigned int p, Factorization f): position(p), factors(f) {}
+};
+
+// An exception class to handle an error when no candidate composites are available.
+// Such a situation should never happen, and indicates a bug in the program.
+// Borrowed from https://riptutorial.com/cplusplus/example/23640/custom-exception
+class CandidatesException: virtual public std::exception {
+protected:
+
+  std::string table_str;
+  std::string error_message;
+
+public:
+
+  explicit
+  CandidatesException(const std::string& msg, const std::string& table_str_in):
+    error_message(msg),
+    table_str(table_str_in)
+    {}
+
+  ~CandidatesException() throw () {}
+
+  /** Returns a pointer to the (constant) error description.
+   *  @return A pointer to a const char*. The underlying memory
+   *  is in possession of the Except object. Callers must
+   *  not attempt to free the memory.
+   */
+  virtual const char* what() const throw () {
+    return error_message.c_str();
+  }
+
+  const std::string& get_table_str() const {
+    return table_str;
+  }
+
+};
 
 class MultiplicationTable {
  private:
@@ -128,12 +162,15 @@ class MultiplicationTable {
   // possibly place the next number in our sequence of integers.
   vector<Tuple> GetFrontier() const;
 
+  // Helper function for a linear programming task.
+  vector<Factorization> GetCurrentIntegerSequence() const;
+
  public:
 
   // Sets prime_count to 0. Initializes table.
   MultiplicationTable();
-  // Returns the child composites of a node with the associated state of the
-  // MultiplicationTable.
+  // Function GetCandidates() returns the child composites of a node with the 
+  // associated state of the MultiplicationTable.
   vector<Candidate> GetCandidates() const;
   unsigned int GetPrimeCount() const;
   void PushComposite(const Candidate&);
@@ -148,3 +185,4 @@ class MultiplicationTable {
 }  // namespace Platt
 
 #endif /* MULTIPLICATION_TABLE_H_ */
+

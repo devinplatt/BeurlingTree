@@ -10,6 +10,7 @@
 #include <map>
 #include <set>
 #include "multiplication_table.h"
+ #include "linear_programming.h"
 #include "candidate.h"
 using std::multimap;
 using std::set;
@@ -18,25 +19,19 @@ namespace Platt {
 
 /*
 Algorithm for determining "frontier" cells of the multiplication table:
-
   let rIndices be the list of rightmost row indices of the table
-
   for(each row r in rIndices besides the first row r=0)
-
     let c = rIndices[r]+r, ie. it is the column index in the table with the
     offset added
     let cAbove = rIndices[r-1]+r-1, the column index for the row above
-
     if (c < cAbove)
       add (r,c+1) to the frontier
-
   // Determine if a new row can be added to rIndices, that is, if the first
   // cell of the next row (this is on the diagonal) is in the frontier.
   let r = max index of rIndices
   let cAbove = rIndices[r]+r
   if( r+1 <= cAbove )
     add (r+1,r+1) to the frontier
-
   return the frontier
 */
 vector<Tuple> MultiplicationTable::GetFrontier() const {
@@ -53,49 +48,46 @@ vector<Tuple> MultiplicationTable::GetFrontier() const {
 // Sets prime_count to 0. Initializes table.
 MultiplicationTable::MultiplicationTable() {
   table.push_back(vector<Cell>());
-  table[0].push_back(Cell(0,Factorization()));  // Identity
-  table[0].push_back(Cell(1,Factorization(0))); // First Prime
+  table[0].push_back(Cell(0,Factorization()));   // Identity
+  table[0].push_back(Cell(1,Factorization(0)));  // First Prime
   prime_count = 1;
+}
+
+// Helper function for GetCandidates().
+vector<Factorization> MultiplicationTable::GetCurrentIntegerSequence() const {
+  vector<Factorization> current_integer_sequence;
+  for (Cell c : table[0]) {
+    current_integer_sequence.push_back(c.factors);
+  }
+  return current_integer_sequence;
 }
 
 /*
 Algorithm for determining the children of a given node:
-
 1.
-
 Determine the "frontier" cells of the multiplication table. The frontier is
 the set of cells that touch the boundary of the existing cells in the table and
 follow a certain rule:
-
   - There must exist a cell in the same column in the row above it.
-
 This rule enforces the rule of multiplication that larger numbers lead to
 greater products, ie. translation-invariance.
-
 The frontier is a starting list of candidate cells which can be filled in to
 the table in this particular invocation of the algorithm. Note that the cell to
 the right of the rightmost cell in the first row is not included in the
 frontier; it is always added to the table since the first row represents
 multiplication by the identity.
-
 2.
-
 We have a multimap of candidates, where the key is a factorization and the value
 is a row, column pair (i,j) indicating a cell where this factorization would be
 present.
-
 We also have the set of keys (factorizations).
-
 In this step we take the frontier cells and add them to the multimap of
 candidates. This collapses the set of cells so that all cells with the same
 factorization are collected together.
-
 for each cell in frontier
   add cell to candidates multimap
   (add cell's key to the set of keys, which does not store duplicates)
-
 3.
-
 We now must remove candidates that do not have "enough" cells given their
 factorization. For example, the factorization (2,1) should have two cells
 associated with it:
@@ -108,22 +100,16 @@ this factorization f, and f' is not yet in the table. Essentially, by counting
 cells and making sure that they meet this requirement we are checking the
 recursive rule of our partial ordering. The table acts as a memoization
 technique for "remembering" the recursive rules of this partial ordering.
-
 let keys_to_erase be the list of keys of candidates to remove from the multimap of candidates
-
 for each factorization f in keys
   let required_count = RequiredCount(f)
   let current_count = count of elements in candidates with key f
-
   if current_count < required_count
     add f to keys_to_erase
-
 for each factorization f in keys_to_erase
   remove elements of candidates with key f
   (remove key f from keys)
-
 4.
-
 Return candidates.
 */
 vector<Candidate> MultiplicationTable::GetCandidates() const {
@@ -146,17 +132,63 @@ vector<Candidate> MultiplicationTable::GetCandidates() const {
 
   // 3. Remove candidates
   set<Factorization> keys_to_erase;
-
   for (Factorization f : keys) {
     unsigned int required_count = f.RequiredCount();
     unsigned int current_count = candidates.count(f);
     if (current_count < required_count)
       keys_to_erase.insert(f);
   }
-
   for (Factorization f : keys_to_erase) {
     candidates.erase(f);
     keys.erase(f);
+  }
+  // If the number of candidates for our next eventual composite is less than 1
+  // we have a serious problem: no more composites!
+  if (keys.size() == 0) {
+    throw(
+        CandidatesException(
+            "Multiplication Table Exception: 0 composite candidates. (After RequiredCount check.)",
+            DebugString()
+            )
+        );
+  }
+
+  // Remove any candidate Factorizations that cause a cycle in the dependency
+  // graph. We check this using linear programming.
+  set<Factorization> keys_to_erase_lp;
+  if (keys.size() > 1) {
+    for (Factorization candidiate_factorization : keys) {
+      vector<Factorization> other_candidate_factorizations;
+      for (Factorization f : keys) {
+        if (f != candidiate_factorization) {
+          other_candidate_factorizations.push_back(f);
+        }
+      }
+      if (!IsFeasibleSequence(GetCurrentIntegerSequence(),
+                              candidiate_factorization,
+                              other_candidate_factorizations)) {
+        keys_to_erase_lp.insert(candidiate_factorization);
+      }
+    }
+    for (Factorization f : keys_to_erase_lp) {
+      candidates.erase(f);
+      keys.erase(f);
+    }
+  }
+
+  // If the number of candidates for our next eventual composite is less than 1
+  // we have a serious problem: no more composites!
+  if (keys.size() == 0) {
+    string linear_programming_error_message = "Multiplication Table Exception: 0 composite candidates. (After Linear Programming check.)";
+    linear_programming_error_message += "\nKeys removed using RequiredCount:\n";
+    for (Factorization f : keys_to_erase) {
+      linear_programming_error_message += f.ToDotString() + "\t";
+    }
+    linear_programming_error_message += "\nKeys removed using Linear Programming:\n";
+    for (Factorization f : keys_to_erase_lp) {
+      linear_programming_error_message += f.ToDotString() + "\t";
+    }
+    throw(CandidatesException(linear_programming_error_message, DebugString()));
   }
 
   // Convert Multimap to vector
@@ -208,7 +240,8 @@ void MultiplicationTable::PopComposite(const Candidate& c) {
 }
 
 void MultiplicationTable::PushPrime() {
-  table[0].push_back(Cell(table[0].size(),Factorization(prime_count)));
+  Factorization f = Factorization(prime_count);
+  table[0].push_back(Cell(table[0].size(), f));
   prime_count++;
 }
 
@@ -231,3 +264,4 @@ string MultiplicationTable::DebugString() const {
 }
 
 }  // namespace Platt
+

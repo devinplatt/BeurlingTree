@@ -11,6 +11,7 @@
 #include "compatibility.h"
 #include <algorithm>
 using std::min;
+using std::max;
 
 namespace Platt {
 
@@ -148,9 +149,7 @@ bool Factorization::IsIdentity() const {
 Required Count returns the number of "binary products" associated with a given
 Factorization. We disregard products that have the identity as one of the
 arguments.
-
 Examples of output:
-
   Factorization as  Output of         Natural Number
   Exponent Vector   Required Count    Example
   <1,1,0>           =>  1             (6: 3*2)
@@ -160,19 +159,16 @@ Examples of output:
   <2,2,0>           =>  4             (36: 2*18,3*12,4*8,6*6)
   <3,2,0>           =>  5             (72: 2*36,3*24,4*18,6*12,8*9)
   <4,1,0>           =>  4             (48: 2*24,3*16,4*12,6*8)
-
   <1,1,1>           =>  3             (30: 2*15,3*10,5*6)
   <2,1,1>           =>  5             (60: 2*30,3*20,4*15,5*12,6*10)
   <2,2,1>           =>  8      (180: 2*90,3*60,4*45,5*36,6*30,9*20,10*18,12*15)
   <3,1,1>           =>  7            (120: 2*60,3*40,4*30,5*24,6*20,8*15,10*12)
-
   <1,0,0>            => 0             (2: none)
   <2,0,0>            => 1             (4: 2*2)
   <3,0,0>            => 1             (8: 2*4)
   <4,0,0>            => 2             (16: 2*8,4*4)
   <5,0,0>            => 2             (32: 2*16,4*8)
   <6,0,0>            => 3             (64: 2*32,4*16,8*8)
-
 Given a factorization f, each prime has a frequency,
 ie.
   Given
@@ -180,45 +176,33 @@ ie.
     1.    12                <2,1>             {(1,2),(2,1)}
     2.    24                <3,1>             {(1,3),(2,1)}
     3.    30                <1,1,1>           {(1,1),(2,1),(3,1)}
-
   For the first example:
     The first prime has a frequency of 2
     The second prime has a frequency of 1
-
   For the second example:
     The first prime has a frequency of 3
     The second prime has a frequency of 1
-
   For the third example:
     The first, second, and third primes all have a frequency of 1
-
 We use these frequencies to determine the required number of binary products
 -- combinations of two numbers that yield the given factorization.
-
 The Algorithm:
-
   let count = 1
   for each prime frequency pf:
     count = count * (pf+1)
-
 At this point count equals the number of all the "subsets" of factorization f.
 For example, for the factorization <2,2> (in exponent vector form)
 count = 9, since the "subsets" of <2,2> are (in lexicographical order):
 <0,0>, <0,1>, <0,2>, <1,0>, <1,1>, <1,2>, <2,0>, <2,1>, <2,2>
-
 Note that we can pair each "subset" with another to get the factorization f.
 In some cases (like with f = <2,2>) there will be one subset we pair with
 itself (e.g <1,1> and <1,1> makes <2,2>). To get the required count we
 effectively wish to count these pairs.
-
 We also wish to disregard the pair containing the identity (eg. <0,0>).
-
 Thus if count is even at this point we want the value (count-2)/2,
 and if count is odd we want the value (count-1)/2.
-
   count = count - 1
   count = count / 2, rounded down
-
   return count
 */
 unsigned int Factorization::RequiredCount() const {
@@ -250,6 +234,19 @@ int Factorization::NumPrimeFactors() {
 
 int Factorization::NumDistinctPrimeFactors() {
   return factors.size();
+}
+
+vector<Tuple> Factorization::GetFactors() {
+  return factors;
+}
+
+// Returns the index of the highest prime factor, using  0-based indexing.
+int Factorization::GetMaxPrime() {
+  int max_prime = 0;
+  for (Tuple t : factors) {
+    max_prime = max(max_prime, (int) t.first);
+  }
+  return max_prime;
 }
 
 // Our lexicographical ordering is defined so that:

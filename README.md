@@ -1,19 +1,24 @@
 BeurlingTree
 ============
 
-Code for generating a tree for the partial order of factorizations of Beurling generalized integers.
-For more information on the topic, see my articles:
-http://www.devinplatt.com/math.html
-The implementation is in C++. In the future I might write versions in other languages, but for now
-this is all you get.
+Code for generating a tree for the partial order of factorizations of Beurling generalized integers. For more information on the topic, see my articles: http://www.devinplatt.com/math.html
+The implementation is in C++. In the future I might write versions in other languages, but for now this is all you get.
 
-I've decided to implement my own basic tree data structure rather than using a library like
-Boost::Graph for simplicity and for the sake of not having to learn the API. For that reason I had
-to provide my own method of serialization, which may not be the most efficient.
+Installing Dependencies
+=======================
 
-This is a work in progress. The basic code for building the tree is now all available, for both the
-cases of prime powers and for all factorizations. Code for building a single path down the tree
-is desired, but an implementation is not available yet. More on the way soon!
+This program makes use of the COIN-OR Linear Programming Solver (or CLP, see https://github.com/coin-or/Clp). To install on Ubuntu, run the command
+```bash
+sudo apt-get install coinor-libclp-dev
+```
 
-Documentation is provided in the separate Documentation.txt file.
+Building
+========
+
+Using g++ in Ubuntu, one can link to the CLP libraries using the command
+```bash
+g++ *.cpp -std=c++11 -I/usr/include/coin/ -lglpk -lClp -lCoinUtils -lbz2 -lz -llapack -lblas -lm -o output
+```
+
+This is a work in progress. Additional documentation is provided in the separate Documentation.txt file.
 

@@ -69,6 +69,9 @@ class Factorization {
   unsigned int RequiredCount() const;
   int NumPrimeFactors();
   int NumDistinctPrimeFactors();
+  vector<Tuple> GetFactors();
+  // Returns the index of the highest prime factor, using  0-based indexing.
+  int GetMaxPrime();
   // Used by the std::less function templated for Factorization, so that
   // Factorization can be used in std associative containters. See the .cpp
   // file for more details.
