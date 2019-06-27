@@ -41,8 +41,11 @@ bool TestTree(string* error){
   T.BreadthFirst(&ReadItems, T.NO_ACTION());
 
   string expected = "1234567";
-  *error = "output of tree is \"" + output + "\" when it should be " + expected;
-  return output == expected;
+  bool pass = (output == expected);
+  if (!pass) {
+    *error = "output of tree is \"" + output + "\" when it should be " + expected + "\n";
+  }
+  return pass;
 }
 
 }  // namespace Platt

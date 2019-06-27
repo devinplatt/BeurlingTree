@@ -12,7 +12,9 @@
 #include <string>
 #include "test_tree.h"
 #include "test_factorization.h"
+#include "test_linear_programming.h"
 #include "test_multiplication_table.h"
+#include "test_random_walk.h"
 #include "integer_tree.h"
 #include "prime_power_tree.h"
 #include "restricted_tree.h"
@@ -21,8 +23,8 @@
 using namespace std;
 using namespace Platt;
 
-const unsigned int RUNS = 10;
-const unsigned int HEIGHT = 1000;
+const unsigned int RUNS = 1;
+const unsigned int HEIGHT = 250;
 // The following two constants are used for RestrictedTree.
 const int MAX_PRIMES = 3;
 const int MAX_COMPOSITES = 3;
@@ -43,15 +45,35 @@ void DemoPrimePowerTree();
 void DemoRestrictedTree();
 void DemoDiagonalFormula();
 void RunRandomWalks(/*int runs, int height*/);
+void DemoRandomWalk();
+void DebugRandomWalk();
 
 int main() {
-  //RunTests();
+  RunTests();
   //DemoIntegerTree();
 
   //DemoPrimePowerTree();
   //DemoRestrictedTree();
   //DemoDiagonalFormula();
-  RunRandomWalks();
+  //RunRandomWalks();
+
+  //IntegerTree* tree = nullptr;
+  //BuildTree(&tree, 10);
+  //PrintTriangle(tree);
+  //if (tree) delete tree;
+
+  /*for(size_t x = 2; x < 4; ++x) {
+    DiagonalFormula df(x);
+    vector <Tuple> coefficients = df.GetFormula();
+    cout << coefficients.size() << " ";
+    for (size_t y = 0; y < coefficients.size(); ++y) {
+      cout << "(" << to_string(coefficients[y].first) << ", "
+           << to_string(coefficients[y].second) << "), ";
+    }
+    cout << endl;
+  }*/
+
+  //DebugRandomWalk();
 
   cin.ignore(numeric_limits<streamsize>::max(),'\n');
   return 0;
@@ -70,7 +92,9 @@ void RunTests() {
   string error;
   VerifyTest(TestFactorization(&error), "Factorization test", &error);
   VerifyTest(TestTree(&error), "Tree test", &error);
+  VerifyTest(TestLinearProgramming(&error), "Linear programming test", &error);
   VerifyTest(TestMultiplicationTable(&error), "MultiplicationTable test", &error);
+  VerifyTest(TestRandomWalk(&error), "RandomWalk test", &error);
 }
 
 void BuildTree(IntegerTree** tree, unsigned int height) {
@@ -283,3 +307,74 @@ void RunRandomWalks(/*int runs, int height*/) {
     exportCSV(number_distinct_prime_factors, "number_distinct_prime_factors.csv");
     exportCSV(number_children, "number_children.csv");
 }
+
+void DemoRandomWalk(/*int runs, int height*/) {
+    RandomWalk* path = nullptr;
+    int number_primes[HEIGHT+1];
+    int number_prime_factors[HEIGHT+1];
+    int number_distinct_prime_factors[HEIGHT+1];
+    int number_children[HEIGHT+1];
+    vector<Factorization> factorizations;
+
+    try {
+        path = new RandomWalk(HEIGHT);
+    } catch (const CandidatesException& e) {
+        std::cout << "Catch is working!" << endl
+                  << e.what() << endl
+                  << "Table DebugString length: " << e.get_table_str().length() << endl;
+      if (e.get_table_str().length() < 2000) {
+        cout << e.get_table_str() << endl;
+      }
+      return;
+    }
+
+    for (int j = 0; j < HEIGHT+1; j++) {
+        number_primes[j] = path->NumPrimes(j);
+        number_prime_factors[j] = path->NumPrimeFactors(j);
+        number_distinct_prime_factors[j] = path->NumDistinctPrimeFactors(j);
+        number_children[j] = path->NumChildren(j);
+        factorizations.push_back(path->GetFactorization(j));
+    }
+    delete path;
+
+    cout << "number primes: " << number_primes[HEIGHT] << endl;
+    cout << "number prime factors: " << number_prime_factors[HEIGHT] << endl;
+    cout << "number distinct prime factors: " <<
+    number_distinct_prime_factors[HEIGHT] << endl;
+    cout << "number children: " << number_children[HEIGHT] << endl;
+
+    for (int i = 0; i < HEIGHT+1; i++) {
+        cout << i << ": " << factorizations[i].ToDotString() << endl;
+    }
+
+    //exportCSV(number_primes, "number_primes.csv");
+    //exportCSV(number_prime_factors, "number_prime_factors.csv");
+    //exportCSV(number_distinct_prime_factors, "number_distinct_prime_factors.csv");
+    //exportCSV(number_children, "number_children.csv");
+}
+
+void DebugRandomWalk(/*int runs, int height*/) {
+    RandomWalk* path = nullptr;
+    int number_primes[HEIGHT+1];
+    int number_prime_factors[HEIGHT+1];
+    int number_distinct_prime_factors[HEIGHT+1];
+    int number_children[HEIGHT+1];
+    vector<Factorization> factorizations;
+ 
+    while (true) {   
+        try {
+            path = new RandomWalk(HEIGHT);
+        } catch (const CandidatesException& e) {
+            std::cout << "Catch is working!" << endl
+                      << e.what() << endl
+                      << "Table DebugString length: " << e.get_table_str().length() << endl;
+            if (e.get_table_str().length() < 500) {
+                cout << e.get_table_str() << endl;
+                delete path;
+                return;
+            }
+        } 
+        delete path;
+    } 
+}
+
